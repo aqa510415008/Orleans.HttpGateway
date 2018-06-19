@@ -41,7 +41,10 @@ namespace OrleansGateway
 
             }, (option, build) =>
             {
-                build.UseLocalhostClustering();
+                if(option.ClusterType == OrleansClusterType.StaticGateway)
+                {
+                    build.UseLocalhostClustering();
+                }
             });
 
         }
