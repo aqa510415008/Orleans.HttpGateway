@@ -2,6 +2,7 @@
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
@@ -10,13 +11,12 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Orleans.Concurrency;
 using Orleans.HttpGateway.AspNetCore.ParameterBinding;
+using Orleans.HttpGateway.Infrastructure;
 using Shouldly;
 using Xunit;
 
-namespace Orleans.HttpGateway.AspNetCore.Tests
+namespace Orleans.HttpGateway.Tests
 {
-
-
 
     public class OrleansHttpGatewayMiddlewareTests : IDisposable
     {
@@ -30,7 +30,21 @@ namespace Orleans.HttpGateway.AspNetCore.Tests
             _server = new TestServer(new WebHostBuilder()
                 .ConfigureServices(services =>
                 {
-                    services.AddOrleansHttpGateway(c => c.AddAssemblies(typeof(ITestGrain1).Assembly));
+                    services.AddOrleansHttpGateway(opt =>
+                    {
+                        opt.Clients.Add("name", new Configuration.OrleansClientOptions()
+                        {
+                            ClusterId = "dev",
+                            ServiceId = "dev",
+                            ClusterType = Configuration.OrleansClusterType.StaticGateway,
+                            InterfaceDllPathName = "",
+                            ServiceName = "name"
+                        });
+
+                    }, (client, build) =>
+                     {
+                         build.UseLocalhostClustering();
+                     });
                     services.AddSingleton<IGrainFactory>(_factoryMock.Object);
                 })
                 .Configure(app => app.UseOrleansHttpGateway())
@@ -47,7 +61,7 @@ namespace Orleans.HttpGateway.AspNetCore.Tests
             _factoryMock.Setup(x => x.GetGrain<ITestGrain3>(6, null)).Returns(testGrain.Object);
 
             var response = await _client.GetAsync(
-                "Orleans.HttpGateway.AspNetCore.Tests.ITestGrain3/6/IntNoParameters");
+                "Orleans.HttpGateway.Tests.ITestGrain3/6/IntNoParameters");
 
             dynamic token = JToken.Parse(await response.Content.ReadAsStringAsync());
 
@@ -68,7 +82,7 @@ namespace Orleans.HttpGateway.AspNetCore.Tests
             _factoryMock.Setup(x => x.GetGrain<ITestGrain3>(6, null)).Returns(testGrain.Object);
 
             var response = await _client.GetAsync(
-                "Orleans.HttpGateway.AspNetCore.Tests.ITestGrain3/6/GetObjectWith2Parameters?one=1&two=okay");
+                "Orleans.HttpGateway.Tests.ITestGrain3/6/GetObjectWith2Parameters?one=1&two=okay");
 
             response.StatusCode.ShouldBe(System.Net.HttpStatusCode.OK);
             dynamic json = JObject.Parse(await response.Content.ReadAsStringAsync());
@@ -90,8 +104,8 @@ namespace Orleans.HttpGateway.AspNetCore.Tests
             _factoryMock.Setup(x => x.GetGrain<ITestGrain3>(6, null)).Returns(testGrain.Object);
 
             var response = await _client.GetAsync(
-                "Orleans.HttpGateway.AspNetCore.Tests.ITestGrain3/6/GetObjectWith2ArrayParameters?one=1&one=2&two=okay&two=dan");
-            
+                "Orleans.HttpGateway.Tests.ITestGrain3/6/GetObjectWith2ArrayParameters?one=1&one=2&two=okay&two=dan");
+
             response.StatusCode.ShouldBe(System.Net.HttpStatusCode.OK);
             dynamic json = JObject.Parse(await response.Content.ReadAsStringAsync());
 
@@ -113,7 +127,7 @@ namespace Orleans.HttpGateway.AspNetCore.Tests
             _factoryMock.Setup(x => x.GetGrain<ITestGrain3>(6, null)).Returns(testGrain.Object);
 
             var response = await _client.GetAsync(
-                "Orleans.HttpGateway.AspNetCore.Tests.ITestGrain3/6/GetObjectWithEnumerableParameters?one=[1,2]");
+                "Orleans.HttpGateway.Tests.ITestGrain3/6/GetObjectWithEnumerableParameters?one=[1,2]");
 
             response.StatusCode.ShouldBe(System.Net.HttpStatusCode.OK);
             dynamic json = JObject.Parse(await response.Content.ReadAsStringAsync());
@@ -145,7 +159,7 @@ namespace Orleans.HttpGateway.AspNetCore.Tests
    ""p2"":""somestring""
 }";
             var response = await _client.PostAsync(
-                "Orleans.HttpGateway.AspNetCore.Tests.ITestGrain3/6/PostObjectWithComplexParameters",
+                "Orleans.HttpGateway.Tests.ITestGrain3/6/PostObjectWithComplexParameters",
                 new StringContent(jsonRequest, Encoding.UTF8, "application/json")
                 );
 
@@ -179,7 +193,7 @@ namespace Orleans.HttpGateway.AspNetCore.Tests
       ""value"":""waarde""
    }}";
             var response = await _client.PostAsync(
-                "Orleans.HttpGateway.AspNetCore.Tests.ITestGrain3/6/PostObjectWithComplexImmutableParameters",
+                "Orleans.HttpGateway.Tests.ITestGrain3/6/PostObjectWithComplexImmutableParameters",
                 new StringContent(jsonRequest, Encoding.UTF8, "application/json")
             );
 
@@ -193,7 +207,7 @@ namespace Orleans.HttpGateway.AspNetCore.Tests
             var settings = new JsonSerializerSettings();
             settings.Converters.Add(new ImmutableConverter());
             var serializer = JsonSerializer.Create(settings);
-            
+
 
             var result = json["success"].ToObject<Immutable<int>>(serializer);
             result.Value.ShouldBe(5);
@@ -208,7 +222,7 @@ namespace Orleans.HttpGateway.AspNetCore.Tests
             _factoryMock.Setup(x => x.GetGrain<ITestGrain3>(6, null)).Returns(testGrain.Object);
 
             var response = await _client.GetAsync(
-                "Orleans.HttpGateway.AspNetCore.Tests.ITestGrain3/6/PostNoParametersNoResponse");
+                "Orleans.HttpGateway.Tests.ITestGrain3/6/PostNoParametersNoResponse");
 
             response.EnsureSuccessStatusCode();
 
@@ -226,7 +240,7 @@ namespace Orleans.HttpGateway.AspNetCore.Tests
             _factoryMock.Setup(x => x.GetGrain<ITestGrain3>(6, null)).Returns(testGrain.Object);
 
             var response = await _client.PostAsync(
-                "Orleans.HttpGateway.AspNetCore.Tests.ITestGrain3/6/PostNoParametersNoResponse", null);
+                "Orleans.HttpGateway.Tests.ITestGrain3/6/PostNoParametersNoResponse", null);
 
             response.EnsureSuccessStatusCode();
 

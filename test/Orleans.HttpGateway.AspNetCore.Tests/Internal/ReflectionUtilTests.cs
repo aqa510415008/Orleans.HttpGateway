@@ -1,9 +1,9 @@
 ﻿using Orleans.Concurrency;
-using Orleans.HttpGateway.AspNetCore.Internal;
+using Orleans.HttpGateway.Infrastructure;
 using Shouldly;
 using Xunit;
 
-namespace Orleans.HttpGateway.AspNetCore.Tests.Internal
+namespace Orleans.HttpGateway.Tests.Internal
 {
     public class ReflectionUtilTests
     {

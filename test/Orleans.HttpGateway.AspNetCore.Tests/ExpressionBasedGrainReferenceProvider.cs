@@ -3,7 +3,7 @@ using Moq;
 using Orleans.HttpGateway.AspNetCore;
 using Xunit;
 
-namespace Orleans.HttpGateway.AspNetCore.Tests
+namespace Orleans.HttpGateway.Tests
 {
     public class ExpressionBasedGrainReferenceProviderTests
     {

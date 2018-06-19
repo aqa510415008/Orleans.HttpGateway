@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Orleans.Concurrency;
 
-namespace Orleans.HttpGateway.AspNetCore.Tests
+namespace Orleans.HttpGateway.Tests
 {
 
     public interface ITestGrainMethods
