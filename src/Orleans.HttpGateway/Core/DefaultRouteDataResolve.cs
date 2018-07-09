@@ -34,12 +34,13 @@ namespace Orleans.HttpGateway.Core
                      throw new ArgumentNullException(nameof(OrleansClientOptions));
                  OrleansClientOptions option = options.Clients[siloName];
                  string grainInterface = option.InterfaceTemplate.Replace("{ServiceName}", serviceName);
-                 return option.Assembly.ExportedTypes.Where(f => typeof(IGrain).IsAssignableFrom(f) && f.Name.Equals(grainInterface, StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
+                 return option.Assembly.ExportedTypes
+                    .Where(f => typeof(IGrain).IsAssignableFrom(f) && f.Name.Equals(grainInterface, StringComparison.OrdinalIgnoreCase))
+                    .FirstOrDefault();
              });
             if (type == null)
                 throw new ArgumentNullException("Grain Type Not null");
             return new GrainRouteValues(context, siloName, serviceName, grainMethod, grainId, type);
-
         }
     }
 }

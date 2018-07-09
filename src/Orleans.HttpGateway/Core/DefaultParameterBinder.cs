@@ -11,6 +11,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
+
 namespace Orleans.HttpGateway.Core
 {
     public class DefaultParameterBinder : IParameterBinder
@@ -36,20 +37,12 @@ namespace Orleans.HttpGateway.Core
                 {
                     var param = parameters[i];
                     object value = null;
-                    if (param.ParameterType.IsPrimitive || param.ParameterType == typeof(string))
-                    {
-                        value = this.BindPrimitiveType(param, queryData, bodyData);
-                    }
-                    else if (param.ParameterType.IsArray)
-                    {
-                        value = this.BindArrayType(param, queryData, bodyData);
-                    }
-                    else if (param.ParameterType.IsClass)
+                    if (param.ParameterType.CanHaveChildren())
                     {
                         value = this.BindClassType(param, bodyData);
                     }
                     else
-                        throw new NotSupportedException("Bind this data type temporarily");
+                        value = this.BindPrimitiveType(param, queryData, bodyData);
 
                     if (value == null)
                         return new object[0];
@@ -58,7 +51,7 @@ namespace Orleans.HttpGateway.Core
                 }
                 catch (Exception ex)
                 {
-                    throw new NotSupportedException("Bind this parameters data failed",ex);
+                    throw new NotSupportedException("Bind this parameters data failed", ex);
                 }
             }
 

@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using Orleans.HttpGateway.Configuration;
@@ -19,13 +20,15 @@ namespace Orleans.HttpGateway.Core
         private readonly JsonSerializer _serializer;
         private readonly RequestDelegate _next;
         private readonly IRouteDataResolve _routeDataResolve;
+        private readonly ILogger _logger;
 
         public OrleansHttpGatewayMiddleware(RequestDelegate next,
             IOptions<OrleansHttpGatewayOptions> config,
             JsonSerializer serializer,
             IGrainBuilder grainBuilder,
             IGrainMethodInvoker grainMethodInvoker,
-            IRouteDataResolve routeDataResolve)
+            IRouteDataResolve routeDataResolve,
+            ILogger logger)
         {
             if (config == null) throw new ArgumentNullException(nameof(config));
 
@@ -33,22 +36,31 @@ namespace Orleans.HttpGateway.Core
             this._options = config.Value;
             this._grainBuilder = grainBuilder ?? throw new ArgumentNullException(nameof(grainBuilder));
             this._grainInvoker = grainMethodInvoker;
+            this._logger = logger;
             _serializer = serializer;
             _next = next;
         }
 
         public async Task Invoke(HttpContext context)
         {
-            var route = this.ResplveRouteData(context);
-            var grain = this._grainBuilder.GetGrain(route);
-            var result = await _grainInvoker.Invoke(grain, route);
-
-            context.Response.StatusCode = 200;
-            context.Response.ContentType = "application/json";
-            using (var writer = new StreamWriter(context.Response.Body))
+            try
             {
-                _serializer.Serialize(writer, result);
-                await writer.FlushAsync();
+                var route = this.ResplveRouteData(context);
+                var grain = this._grainBuilder.GetGrain(route);
+                var result = await _grainInvoker.Invoke(grain, route);
+
+                context.Response.StatusCode = 200;
+                context.Response.ContentType = "application/json";
+                using (var writer = new StreamWriter(context.Response.Body))
+                {
+                    _serializer.Serialize(writer, result);
+                    await writer.FlushAsync();
+                }
+            }
+            catch (Exception ex)
+            {
+                this._logger.LogError(ex, "Request url " + context.Request.Host.ToString());
+                throw ex;
             }
         }
 

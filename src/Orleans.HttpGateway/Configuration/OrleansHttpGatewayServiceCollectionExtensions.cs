@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection.Extensions;
 using Newtonsoft.Json;
 using Orleans;
+using Orleans.Configuration;
 using Orleans.HttpGateway.Configuration;
 using Orleans.HttpGateway.Core;
 using Orleans.HttpGateway.Infrastructure;
@@ -47,10 +48,16 @@ namespace Microsoft.Extensions.DependencyInjection
             configure?.Invoke(option);
             foreach (var item in option.Clients)
             {
-                services.AddTransientNamedService<IClientBuilder>(item.Value.Assembly.Location, (service, key) =>
+                var clientOption = item.Value;
+                services.AddTransientNamedService<IClientBuilder>(clientOption.Assembly.Location, (service, key) =>
                 {
                     var build = new ClientBuilder();
-                    clientBuild?.Invoke(item.Value, build);
+                    build.Configure<ClusterOptions>(opt =>
+                    {
+                        opt.ClusterId = clientOption.ClusterId;
+                        opt.ServiceId = clientOption.ServiceId;
+                    });
+                    clientBuild?.Invoke(clientOption, build);
                     return build;
                 });
             }
@@ -58,6 +65,6 @@ namespace Microsoft.Extensions.DependencyInjection
         }
 
 
-     
+
     }
 }
