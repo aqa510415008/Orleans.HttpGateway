@@ -27,13 +27,11 @@ namespace Orleans.HttpGateway.Core
             IGrainMethodInvoker grainMethodInvoker,
             IRouteDataResolve routeDataResolve)
         {
-            if (grainBuilder == null) throw new ArgumentNullException(nameof(grainBuilder));
             if (config == null) throw new ArgumentNullException(nameof(config));
 
             this._routeDataResolve = routeDataResolve;
-
             this._options = config.Value;
-            this._grainBuilder = grainBuilder;
+            this._grainBuilder = grainBuilder ?? throw new ArgumentNullException(nameof(grainBuilder));
             this._grainInvoker = grainMethodInvoker;
             _serializer = serializer;
             _next = next;

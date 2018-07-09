@@ -1,8 +1,4 @@
-﻿using System;
-using System.Net.Http;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Builder;
+﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
@@ -10,9 +6,12 @@ using Moq;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Orleans.Concurrency;
-using Orleans.HttpGateway.AspNetCore.ParameterBinding;
 using Orleans.HttpGateway.Infrastructure;
 using Shouldly;
+using System;
+using System.Net.Http;
+using System.Text;
+using System.Threading.Tasks;
 using Xunit;
 
 namespace Orleans.HttpGateway.Tests
