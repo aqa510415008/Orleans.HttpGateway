@@ -5,9 +5,7 @@ using Newtonsoft.Json;
 using Orleans.HttpGateway.Configuration;
 using Orleans.HttpGateway.Model;
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace Orleans.HttpGateway.Core
@@ -28,7 +26,7 @@ namespace Orleans.HttpGateway.Core
             IGrainBuilder grainBuilder,
             IGrainMethodInvoker grainMethodInvoker,
             IRouteDataResolve routeDataResolve,
-            ILogger logger)
+            ILogger<OrleansHttpGatewayMiddleware> logger)
         {
             if (config == null) throw new ArgumentNullException(nameof(config));
 
